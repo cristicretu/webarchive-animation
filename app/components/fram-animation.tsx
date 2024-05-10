@@ -41,7 +41,8 @@ export function FrameAnimation() {
     <>
       <MotionConfig transition={transition}>
         {loaded && (
-          <AnimatePresence>
+          // <AnimatePresence mode="popLayout">
+          <>
             {showGrid ? (
               <div className="grid grid-cols-3 gap-4 p-4">
                 {imagesToShow.map((src, i) => (
@@ -53,47 +54,48 @@ export function FrameAnimation() {
                     layoutId={src}
                     className="rounded-xl bg-neutral-500"
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   />
                 ))}
               </div>
             ) : (
               imagesToShow.map((src, i) => (
-                <motion.img
-                  key={src}
-                  layoutId={src}
-                  src={src}
-                  className={clsx(
-                    "absolute",
-                    "w-1/3",
-                    "rounded-xl",
-                    "bg-neutral-500"
-                  )}
-                  initial={{
-                    opacity: 0,
-                    y: 50 * (i + 1),
-                    scale: 0.8,
-                    filter: "blur(10px)",
-                    zIndex: 9999 - i,
-                  }}
-                  animate={{
-                    opacity: 1 - i * 0.2,
-                    y: -32 * i,
-                    scale: 1 - i * 0.06,
-                    filter: "blur(0px)",
-                    zIndex: 9999 - i,
-                  }}
-                  exit={{
-                    opacity: 0.5,
-                    y: 50,
-                    scale: 0.9,
-                    filter: "blur(10px)",
-                  }}
-                />
+                <AnimatePresence key={src} mode="popLayout">
+                  <motion.img
+                    key={src}
+                    layoutId={src}
+                    src={src}
+                    width={400}
+                    height={400}
+                    className={clsx("absolute", "rounded-xl", "bg-neutral-500")}
+                    initial={{
+                      opacity: 1 - (i + 1) * 0.2,
+                      y: -32 * (i + 1),
+                      scale: 1 - (i + 1) * 0.06,
+                      filter: "blur(10px)",
+                      zIndex: 9999 - i,
+                    }}
+                    animate={{
+                      opacity: 1 - i * 0.2,
+                      y: -32 * i,
+                      scale: 1 - i * 0.06,
+                      filter: "blur(0px)",
+                      zIndex: 9999 - i,
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: 50,
+                      scale: 0.5,
+                      filter: "blur(10px)",
+                      zIndex: -1,
+                    }}
+                  />
+                </AnimatePresence>
               ))
             )}
-          </AnimatePresence>
+            {/*  </AnimatePresence> */}
+          </>
         )}
 
         <div className="absolute bottom-0 w-full flex justify-center space-x-4">
