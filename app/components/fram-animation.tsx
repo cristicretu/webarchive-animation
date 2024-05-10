@@ -1,130 +1,120 @@
 "use client";
-
-import { AnimatePresence, MotionConfig, motion, spring } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 
 const IMAGES = ["japan", "jungle", "new-york", "desert"];
 
-const imgURL = IMAGES.map((img) => {
-  return `https://animations-on-the-web-git-how-i-use-3066e1-emilkowalski-s-team.vercel.app/how-i-use-framer-motion/why-framer-motion/${img}.webp`;
-});
+const imgURL = IMAGES.map(
+  (img) =>
+    `https://animations-on-the-web-git-how-i-use-3066e1-emilkowalski-s-team.vercel.app/how-i-use-framer-motion/why-framer-motion/${img}.webp`
+);
 
 export function FrameAnimation() {
   const [index, setIndex] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
 
-  const imagesToShow = useMemo(() => {
-    return imgURL.slice(index, Math.min(index + 3, imgURL.length));
-  }, [index, imgURL]);
+  useEffect(() => {
+    const preloadImages = imgURL.map((src) => {
+      const img = new Image();
+      img.src = src;
+      return img;
+    });
+    Promise.all(
+      preloadImages.map((img) => {
+        return new Promise((resolve) => {
+          img.onload = resolve;
+        });
+      })
+    ).then(() => setLoaded(true));
+  }, []);
 
-  const handleNext = () => {
-    if (index + 1 < imgURL.length) {
-      setIndex(index + 1);
-    }
-  };
+  const imagesToShow = useMemo(
+    () => imgURL.slice(index, Math.min(index + 3, imgURL.length)),
+    [index, imgURL]
+  );
 
-  const handlePrev = () => {
-    if (index > 0) {
-      setIndex(index - 1);
-    }
-  };
+  const transition = { duration: 0.5, bounce: 0, type: "spring" };
 
   return (
     <>
-      <MotionConfig
-        // transition={{
-        //   type: "spring",
-        //   // stiffness: 300,
-        //   // damping: 30,
-        //   duration: 1,
-        // }}
-
-        transition={{ duration: 0.5, bounce: 0, type: "spring" }}
-
-        // transition={{ duration: 5 }}
-      >
-        {/* </AnimatePresence> */}
-        <AnimatePresence initial={false} mode="popLayout">
-          {/* first card */}
-          <motion.img
-            key={imagesToShow[0]}
-            layoutId={imagesToShow[0]}
-            src={imagesToShow[0]}
-            className={clsx(
-              "absolute",
-              "w-1/3",
-              "rounded-xl",
-              "bg-neutral-500",
-              "z-50"
+      <MotionConfig transition={transition}>
+        {loaded && (
+          <AnimatePresence>
+            {showGrid ? (
+              <div className="grid grid-cols-3 gap-4 p-4">
+                {imagesToShow.map((src, i) => (
+                  <motion.img
+                    key={src}
+                    src={src}
+                    width={200}
+                    height={200}
+                    layoutId={src}
+                    className="rounded-xl bg-neutral-500"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                  />
+                ))}
+              </div>
+            ) : (
+              imagesToShow.map((src, i) => (
+                <motion.img
+                  key={src}
+                  layoutId={src}
+                  src={src}
+                  className={clsx(
+                    "absolute",
+                    "w-1/3",
+                    "rounded-xl",
+                    "bg-neutral-500"
+                  )}
+                  initial={{
+                    opacity: 0,
+                    y: 50 * (i + 1),
+                    scale: 0.8,
+                    filter: "blur(10px)",
+                    zIndex: 9999 - i,
+                  }}
+                  animate={{
+                    opacity: 1 - i * 0.2,
+                    y: -32 * i,
+                    scale: 1 - i * 0.06,
+                    filter: "blur(0px)",
+                    zIndex: 9999 - i,
+                  }}
+                  exit={{
+                    opacity: 0.5,
+                    y: 50,
+                    scale: 0.9,
+                    filter: "blur(10px)",
+                  }}
+                />
+              ))
             )}
-            initial={{ opacity: 0, y: 32, scale: 0.8, filter: "blur(10px)" }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              filter: "blur(0px)",
-            }}
-            exit={{
-              opacity: 0.5,
-              y: -32,
-              scale: 0.8,
-              filter: "blur(10px)",
-            }}
-          />
+          </AnimatePresence>
+        )}
 
-          {/* second card */}
-          <motion.img
-            key={imagesToShow[1]}
-            layoutId={imagesToShow[1]}
-            src={imagesToShow[1]}
-            className={clsx(
-              "absolute",
-              "w-1/3",
-              "rounded-xl",
-              "bg-neutral-500",
-              "z-40"
-            )}
-            initial={{ opacity: 0, y: 64, scale: 0.8 }}
-            animate={{
-              opacity: 0.8,
-              y: -32,
-              scale: 0.94,
-              filter: "blur(0px)",
-            }}
-          />
-
-          {/* third card */}
-          <motion.img
-            key={imagesToShow[2]}
-            layoutId={imagesToShow[2]}
-            src={imagesToShow[2]}
-            className={clsx(
-              "absolute",
-              "w-1/3",
-              "rounded-xl",
-              "bg-neutral-500",
-              "z-30"
-            )}
-            initial={{ opacity: 0, y: 96, scale: 0.8 }}
-            animate={{
-              opacity: 0.6,
-              y: -64,
-              scale: 0.88,
-              filter: "blur(0px)",
-            }}
-          />
-        </AnimatePresence>
-
-        <div className="absolute bottom-0 w-full flex justify-center">
+        <div className="absolute bottom-0 w-full flex justify-center space-x-4">
           <button
             className="bg-gray-200 p-2 rounded-xl"
-            onClick={handlePrev}
+            onClick={() => setIndex(Math.max(index - 1, 0))}
             disabled={index === 0}
           >
             Prev
           </button>
-          <button className="bg-gray-200 p-2 rounded-xl" onClick={handleNext}>
+          <button
+            className="bg-gray-200 p-2 rounded-xl"
+            onClick={() => setIndex(Math.min(index + 1, 9999))}
+          >
             Next
+          </button>
+          <button
+            className="bg-gray-200 p-2 rounded-xl"
+            onClick={() => setShowGrid((prev) => !prev)}
+          >
+            Show Grid
           </button>
         </div>
       </MotionConfig>
